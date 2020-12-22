@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Titre de la page</title>
+  <!--<script src="script.js"></script> -->
+  <style>
+	canvas{
+		border: 2px solid black;
+		background : #FFFFFF;
+	}
+	#affichage{
+		position : absolute;
+		top : 0px;
+		left : 700px;
+		
+	}
+  </style>
+</head>
+<body onload=create_carte(10,10)>
+<div id="affichage">Commencer le jeu pour afficher es scores</div>
+<canvas id="canvas" width="600" height="600">
+  Désolé, votre navigateur ne prend pas en charge &lt;canvas&gt;.
+</canvas>
+  <!-- Le reste du contenu -->
+<script>
+var deuxJoueur = new Array();
+var canvas = document.querySelector("#canvas");
+var ctx = canvas.getContext('2d');
+// nombre de pas autorisé
+const NOMBRE_PAS = 3;
+const X_ = 10;
+const Y_ = 10;
+
+function joueur(nom,x,y, Arme, visuel){
+	this.nom 	= nom;
+	this.Arme 	= Arme;
+	this.pointVie = 100;
+	this.visuel = visuel;
+}
+
+function arme(nom,degat, visuel){
+	this.nom 	= nom;
+	this.degat 	= degat;
+	this.visuel	= visuel;
+}
+
+function obstacle(nom, visuel){
+	this.nom 	= nom;
+	this.visuel = visuel;
+}
+
+
+function carte(matrice){
+	this.matrice= matrice;
+}
+
+function tile(nom , visuel ){
+	this.nom 	= nom;
+	this.visuel = visuel;
+}
+
+function decorerTile(nom,visuel){
+	this.nom = nom;
+	this.visuel = visuel;
+}
+
+	// Créer fonction : une sorte de mappage: indice array et point x,y
+	function jouer(array_carte,position_x,position_y,joueur){
+	
+		// refaire la liste avec les possibilités de deplacement
+		
+		// je test et je libere l'ancien emplacement
+		if(isAvailable(array_carte,position_x,position_y,joueur)){
+			// le joueur prend l'arme
+			joueur = ArmeDisponible(array_carte,position_x,position_y,joueur);
+			// mettre dans l'ancien emplacement de joueur le carreau
+			array_carte[joueur.x][joueur.y] = new tile("iam a tile", "vide.png");
+			// modifier les coordonnées x et y
+			joueur.x = position_x;
+			joueur.y = position_y;
+			array_carte[position_x][position_y] = joueur;
+			deuxJoueur[0] = joueur;
+			// alterner les deux dans la liste
+			alterner();
+			mSound.play();
+		}else{
+			alert("impossible de se déplacer à cette direction ! ");
+		}
+		return array_carte;
+	}
+	
+	/* mettre à jour la carte selon les elements apres le joueur*/
+	
+	function update_carte(array_carte,x,y){	
+		//console.log("appel"+array_carte[6][0].nom);
+		
+		var Tile 	= 	getSizeTile(x,y);
+		var py		=	0;
+		var px		=	0;
+		var img = new Image();
+		
+		
+		for(var i=0 ; i<x ; i++){
+			for(var j=0 ; j<y ; j++){
+
+				if( (array_carte[i][j]) instanceof tile ){
+					var img = new Image();
+					img.src = array_carte[i][j].visuel;
+					ctx.drawImage(img, px, py, Tile[1], Tile[0]);
+				}else if( (array_carte[i][j]) instanceof obstacle  ){
+					var img = new Image();
+					img.src = array_carte[i][j].visuel;
+					ctx.drawImage(img, px, py, Tile[1], Tile[0]);
+				}else if( (array_carte[i][j]) instanceof joueur  ){
+					if(array_carte[i][j].nom==j1){
+						var img = new Image();
+						img.src = array_carte[i][j].visuel;//
+						ctx.drawImage(img, px, py, Tile[1], Tile[0]);
+					}
+					if(array_carte[i][j].nom==j2){
+						var img = new Image();
+						img.src = array_carte[i][j].visuel;//
+						ctx.drawImage(img, px, py, Tile[1], Tile[0]);
+					}
+				}else if( (array_carte[i][j]) instanceof arme  ){
+					var img = new Image();
+					img.src = array_carte[i][j].visuel;//
+					ctx.drawImage(img, px, py, Tile[1], Tile[0]);
+				}else if( (array_carte[i][j]) instanceof decorerTile ){
+					var img = new Image();
+					img.src = array_carte[i][j].visuel;//
+					ctx.drawImage(img, px, py, Tile[1], Tile[0]);
+				}
+				
+				
+				px += Tile[0] + margin ;
+			}
+			px = 0;
+			py += Tile[1] + margin;
+		}
+		console.log(array_carte);
+	}
+	/**/
+	var margin = 0.2;
+	var mSound = new sound("jump.mp3");
+	// créer une carte
+	create_carte(X_,Y_);
+	
+	function create_carte(x,y){
+		var array_carte = create_list_for_carte(x,y);
+		/* Dans chaque tour, le joueur a la possibilité de se deplacer que verticalement ou horizontalement*/
+		array_carte = tracerCheminPossible(array_carte,deuxJoueur[0]);
+		
+		//array_carte = jouer(array_carte,deuxJoueur[0].x,(deuxJoueur[0].y+1),deuxJoueur[0]);
+		update_carte(array_carte,x,y);
+		
+		//initialiser les deux joueurs
+		//var canvas_element = document.querySelector("#canvas");
+		
+		var xy = new Array();
+		
+		canvas.onclick = function(e) {
+			event = e; 
+			/*recuperer le carreau cliqué*/
+			xy = getXY(event.clientX,event.clientY,x,y);
+			
+			// controler la possibilite obstacle, delimiteur
+			array_carte = jouer(array_carte,xy[1],xy[0],deuxJoueur[0]);
+			array_carte = remettre(array_carte);
+			array_carte = tracerCheminPossible(array_carte,deuxJoueur[0]);
+			update_carte(array_carte,x,y);
+			//console.log(array_carte);
+		}
+	}
+	/*recupérer le carreau sur le quel l'utilisateur a cliqué*/
+	function getXY(px,py,x,y){
+		var xy = new Array();
+		var getXYTile = getSizeTile(x,y);
+		var x = parseInt(px / (getXYTile[0] + margin)) ;
+		var y = parseInt(py / (getXYTile[1] + margin)) ;
+		xy.push(x);
+		xy.push(y);
+		return xy;
+	}
+	
+	function getSizeTile(x,y){
+		var canvas = document.querySelector("#canvas");	
+		width_ = Math.floor(canvas.width / y) - margin;
+		height_ = Math.floor(canvas.height / x) - margin;
+		
+		var array_liste = new Array();
+		array_liste.push(width_);
+		array_liste.push(height_);
+		
+		return array_liste;
+	}
+	
+	/* fonction qui crée les elements de la liste aleatoirement */
+	function create_list_for_carte(x,y){
+		var array_carte = new Array();
+		var nombre_obstacle = 10;
+		var nbr;
+		var element = 0;
+		var elements_obligatoire = element_obligatoire();
+		
+		for(var i =0;i < x;i++){
+			var array_carte1 = new Array();
+			var a;
+			for(var j = 0 ; j< y ; j++){
+				nbr = getRandomInt(10)%10;
+				// afin d'avoir une probabilité de 1/10 pour les obstacles
+				if( nbr != 1 ){
+					a = new tile("iam tile", "vide.png");
+				}else{
+					a = new obstacle("iam obstacle", "obstacle.png");
+				}
+				array_carte1.push(a);
+			}
+			array_carte.push(array_carte1);
+		}
+		
+		
+		// je mets les elements essenciel 
+		while(elements_obligatoire.length > element){
+			var value_x = getRandomInt(9);
+			var value_y = getRandomInt(10);
+			
+			if( (array_carte[value_x][value_y]) instanceof tile ){
+				if( elements_obligatoire[element] instanceof joueur ){
+					elements_obligatoire[element].x = elements_obligatoire[element].x = value_x;
+					elements_obligatoire[element].y = elements_obligatoire[element].y = value_y;
+				}
+				array_carte[value_x][value_y] = elements_obligatoire[element];
+				element++;
+			}
+		}
+			
+		return array_carte;
+	}
+	
+	// generer des nombres aleatoires.
+	function getRandomInt(max) {
+		return Math.floor(Math.random() * Math.floor(max));
+	}
+	var j1 ;
+	var j2 ;
+	var saisir = "saisir";
+	
+	do{
+		j1 = prompt("Veuillez "+saisir+" le nom du joueur N°1");
+		j2 = prompt("Veuillez "+saisir+" le nom du joueur N°2");
+		saisir = "resaisir de nouveau ";
+	}while((j1=='') || (j2==''));
+	
+	
+	function element_obligatoire(){
+		let array_carte = new Array();
+		/* 9 x 10 = 90 tiles; 
+		2+4+(86*10%)+x */
+		// deux joueurs si random = 1
+		array_carte.push(new joueur(j2,0,0,null,"j1.png"));
+		array_carte.push(new joueur(j1,0,0,null,"j2.png"));
+		deuxJoueur = array_carte;
+		// 4 armes
+		// deux joueurs si random = 1
+		array_carte.push(new arme("couteau","10","knife.png"));
+		array_carte.push(new arme("baton","50","walking-stick.png"));
+		array_carte.push(new arme("Canon","100","cannon.png"));
+		array_carte.push(new arme("Carabine","90","gun.png"));
+		
+		return array_carte;
+		
+	}
+	
+	//fcontion qui test la possibilité de se deplacer sur un carreau
+	function isAvailable(array_carte,position_x,position_y,joueur_){
+
+		// test si le nouveau emplacement contient arme ou decorerTile
+		if((array_carte[position_x][position_y] instanceof decorerTile) || (array_carte[position_x][position_y] instanceof arme)){
+			return true;
+		}
+		return false;
+	}
+	
+	function alterner(){
+		
+		//alterner les joueurs
+		var pivot = deuxJoueur[0];
+		deuxJoueur[0] = deuxJoueur[1];
+		deuxJoueur[1] = pivot;
+		
+		// affichage de tour et information
+		var display = document.getElementById('affichage');
+		var ajouterTexte;
+		ajouterTexte = "Le tour de "+deuxJoueur[0].nom +" ( point de vie "+ deuxJoueur[0].pointVie +" )";
+		if(deuxJoueur[0].Arme){
+			ajouterTexte += " l'arme qu'il dispose : "+ deuxJoueur[0].Arme.nom +" dégat infligé "+ deuxJoueur[0].Arme.degat
+		}else{
+			ajouterTexte += " l'arme qu'il dispose : aucune ";
+		}
+		ajouterTexte += "<br /> "+deuxJoueur[1].nom +" ( point de vie "+ deuxJoueur[1].pointVie +" )";;
+		if(deuxJoueur[1].Arme){
+			ajouterTexte += " l'arme qu'il dispose : "+ deuxJoueur[1].Arme.nom +" dégat infligé "+ deuxJoueur[1].Arme.degat
+		}else{
+			ajouterTexte += " l'arme qu'il dispose : aucune ";
+		}
+		
+		display.innerHTML = ajouterTexte;
+		
+	}
+	function ArmeDisponible(array_carte,position_x,position_y,joueur){
+		if(array_carte[position_x][position_y] instanceof arme){
+			joueur.Arme = array_carte[position_x][position_y];
+		}
+		return joueur;
+	}
+	//
+	function tracerCheminPossible(array_carte,joueur){
+		// array_carte = decorer(array_carte,XY)
+		var FlagXplus 	= true;
+		var FlagXmoins 	= true;
+		var FlagYplus 	= true;
+		var FlagYmoins 	= true;
+		var incriment 	= 1;
+		
+		while( (FlagXplus || FlagYmoins || FlagYplus || FlagXmoins) && (incriment < 4) ){
+			if((joueur.x + incriment) < X_){
+				if(((array_carte[joueur.x + incriment][joueur.y]) instanceof tile) && FlagXplus){
+					decorer(array_carte,joueur.x + incriment ,joueur.y);
+				}else{
+					FlagXplus = false;
+				}
+			}
+				
+			
+			
+			if((joueur.x - incriment) > -1){
+				if((array_carte[joueur.x - incriment][joueur.y] instanceof tile) && FlagXmoins){
+					decorer(array_carte,joueur.x - incriment ,joueur.y);
+				}else{
+					FlagXmoins = false;
+				}
+			}
+				
+			
+			
+			if ((joueur.y + incriment) < Y_){
+				if((array_carte[joueur.x][joueur.y +  incriment] instanceof tile) && FlagYplus){
+					decorer(array_carte,joueur.x ,joueur.y + incriment );
+				}else{
+					FlagYplus = false;
+				}
+			}
+				
+			
+			
+			if((joueur.y - incriment) > -1){
+				if((array_carte[joueur.x][joueur.y -  incriment] instanceof tile) && FlagYmoins ){
+					decorer(array_carte,joueur.x ,joueur.y - incriment );
+				}else{
+					FlagYmoins = false;
+				}
+			}
+				
+			
+			incriment++;
+		}
+		
+		return array_carte;
+	}
+	
+	// function
+	function decorer(array_carte,X,Y){
+		array_carte[X][Y] = new decorerTile("dec","possible.png");
+		return array_carte;
+	}
+	
+	// remettre tous decorerTile en tile;
+	function remettre(array_carte){
+		for(var i=0 ; i<array_carte.length ; i++){
+			for(var j=0 ; j<array_carte[0].length ; j++){
+				if(array_carte[i][j] instanceof decorerTile){
+					array_carte[i][j] = new tile("iam tile", "vide.png");
+				}
+			}
+		}
+		return array_carte;
+	}
+	
+	function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src = src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    document.body.appendChild(this.sound);
+		this.play = function(){
+			this.sound.play();
+		}
+		this.stop = function(){
+			this.sound.pause();
+		}    
+	}
+</script>
+</body>
+</html>
