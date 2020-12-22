@@ -168,14 +168,22 @@ function decorerTile(nom,visuel){
 			// controler la possibilite obstacle, delimiteur
 			array_carte = jouer(array_carte,xy[1],xy[0],deuxJoueur[0]);
 			array_carte = remettre(array_carte);
+			/* 
+				Selon les pas, nous tracons les possibilités de déplacement en tenant compte 
+				des obstacles
+			*/
 			array_carte = tracerCheminPossible(array_carte,deuxJoueur[0]);
 			update_carte(array_carte,x,y);
-			//console.log(array_carte);
 		}
 	}
-	/*recupérer le carreau sur le quel l'utilisateur a cliqué*/
+	/* Recupérer le carreau sur le quel l'utilisateur a cliqué
+	Le clic sur un emplacemnet sur canevas, on aura le x et y */
 	function getXY(px,py,x,y){
 		var xy = new Array();
+		/* 
+		getSizeTile :fait diviser l'espace de canevas afin d'avoir les carreaux 
+		aussi l'ajout de la valeur margin (sert de séparateur entre les carreaux) 
+		 */
 		var getXYTile = getSizeTile(x,y);
 		var x = parseInt(px / (getXYTile[0] + margin)) ;
 		var y = parseInt(py / (getXYTile[1] + margin)) ;
@@ -202,12 +210,14 @@ function decorerTile(nom,visuel){
 		var nombre_obstacle = 10;
 		var nbr;
 		var element = 0;
+		//element_obligatoire fonction qui nous retourne les elements obli (Tile,decorerTile)
 		var elements_obligatoire = element_obligatoire();
 		
 		for(var i =0;i < x;i++){
 			var array_carte1 = new Array();
 			var a;
 			for(var j = 0 ; j< y ; j++){
+				// getRandomInt(10) : 10 est le nombre max que la f peut retourner.
 				nbr = getRandomInt(10)%10;
 				// afin d'avoir une probabilité de 1/10 pour les obstacles
 				if( nbr != 1 ){
@@ -221,7 +231,7 @@ function decorerTile(nom,visuel){
 		}
 		
 		
-		// je mets les elements essenciel 
+		// je mets les elements essenciels aleatoirement
 		while(elements_obligatoire.length > element){
 			var value_x = getRandomInt(9);
 			var value_y = getRandomInt(10);
@@ -239,7 +249,8 @@ function decorerTile(nom,visuel){
 		return array_carte;
 	}
 	
-	// generer des nombres aleatoires.
+	// Generer des nombres aleatoires.
+	// la fonction ne pourra retourner un nombre au-dessus de max
 	function getRandomInt(max) {
 		return Math.floor(Math.random() * Math.floor(max));
 	}
@@ -253,7 +264,7 @@ function decorerTile(nom,visuel){
 		saisir = "resaisir de nouveau ";
 	}while((j1=='') || (j2==''));
 	
-	
+	// mettre obligatoirement ces type carreau dans notre canevas
 	function element_obligatoire(){
 		let array_carte = new Array();
 		/* 9 x 10 = 90 tiles; 
@@ -264,10 +275,11 @@ function decorerTile(nom,visuel){
 		deuxJoueur = array_carte;
 		// 4 armes
 		// deux joueurs si random = 1
-		array_carte.push(new arme("couteau","10","knife.png"));
-		array_carte.push(new arme("baton","50","walking-stick.png"));
-		array_carte.push(new arme("Canon","100","cannon.png"));
-		array_carte.push(new arme("Carabine","90","gun.png"));
+		// arme(nom,degat,visuel)
+		array_carte.push(new arme("couteau"	,"10"	,"knife.png"));
+		array_carte.push(new arme("baton"	,"50"	,"walking-stick.png"));
+		array_carte.push(new arme("Canon"	,"100"	,"cannon.png"));
+		array_carte.push(new arme("Carabine","90"	,"gun.png"));
 		
 		return array_carte;
 		
@@ -370,7 +382,7 @@ function decorerTile(nom,visuel){
 		return array_carte;
 	}
 	
-	// function
+	// function 
 	function decorer(array_carte,X,Y){
 		array_carte[X][Y] = new decorerTile("dec","possible.png");
 		return array_carte;
@@ -402,6 +414,23 @@ function decorerTile(nom,visuel){
 			this.sound.pause();
 		}    
 	}
+	document.addEventListener('keydown', (event) => {
+		const nomTouche = event.key;
+		alert(nomTouche)
+		//ArrowLeft,ArrowRight,ArrowUp,ArrowDown
+		/*if (nomTouche === 'Control') {
+			// Pas d'alerte si seule la touche Control est pressée.
+			return;
+		}*/
+
+		/*if (event.ctrlKey) {
+			// Même si event.key n'est pas 'Control' (par ex., 'a' is pressed),
+			// event.ctrlKey peut être true si la touche Ctrl est pressée dans le même temps.
+			alert(`Combinaison de ctrlKey + ${nomTouche}`);
+		} else {
+			alert(`Touche pressée ${nomTouche}`);
+		}*/
+		}, false);
 </script>
 </body>
 </html>
