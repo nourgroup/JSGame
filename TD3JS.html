@@ -155,7 +155,6 @@ function decorerTile(nom,visuel){
 		/* Dans chaque tour, le joueur a la possibilité de se déplacer verticalement ou horizontalement*/
 		array_carte = tracerCheminPossible(array_carte,deuxJoueur[0]);
 		
-		//array_carte = jouer(array_carte,deuxJoueur[0].x,(deuxJoueur[0].y+1),deuxJoueur[0]);
 		/*dessiner à nouveau canevas*/
 		update_carte(array_carte,x,y);
 		
@@ -298,25 +297,25 @@ function decorerTile(nom,visuel){
 		var pivot = deuxJoueur[0];
 		deuxJoueur[0] = deuxJoueur[1];
 		deuxJoueur[1] = pivot;
-		display.innerHTML = afficher();
+		ecrireDOM(tableauScore());
 	}
 	
 		
-	function afficher(){
+	function tableauScore(){
 		// affichage de tour et information
 		
 		var ajouterTexte;
-		ajouterTexte = "<div><img src='"+deuxJoueur[0].visuel+"'><div style='margin:auto;width:50%;'>Le tour de "+deuxJoueur[0].nom +" ( point de vie "+ deuxJoueur[0].pointVie +" )";
+		ajouterTexte = "<div><img src='"+deuxJoueur[0].visuel+"' width='40' height='40'>Le tour de "+deuxJoueur[0].nom +" ( point de vie "+ deuxJoueur[0].pointVie +" )";
 		if(deuxJoueur[0].Arme){
 			ajouterTexte += "l'arme qu'il dispose : "+ deuxJoueur[0].Arme.nom +" dégat infligé "+ deuxJoueur[0].Arme.degat
-			ajouterTexte += "<img style='vertical-align: baseline;' src='"+deuxJoueur[0].Arme.visuel+"'></div></div>";
+			ajouterTexte += "<img style='vertical-align: baseline;' src='"+deuxJoueur[0].Arme.visuel+"' width='40' height='40'></div>";
 		}else{
 			ajouterTexte += "l'arme qu'il dispose : aucune </div></div>";
 		}
-		ajouterTexte += "<div><img src='"+deuxJoueur[1].visuel+"'>"+deuxJoueur[1].nom +" ( point de vie "+ deuxJoueur[1].pointVie +" )";;
+		ajouterTexte += "<div><img src='"+deuxJoueur[1].visuel+"' width='40' height='40'>"+deuxJoueur[1].nom +" ( point de vie "+ deuxJoueur[1].pointVie +" )";;
 		if(deuxJoueur[1].Arme){
 			ajouterTexte += " l'arme qu'il dispose : "+ deuxJoueur[1].Arme.nom +" dégat infligé "+ deuxJoueur[1].Arme.degat
-			ajouterTexte += "<img src='"+deuxJoueur[1].Arme.visuel+"'></div></div>";
+			ajouterTexte += "<img src='"+deuxJoueur[1].Arme.visuel+"' width='40' height='40'></div></div>";
 		}else{
 			ajouterTexte += " l'arme qu'il dispose : aucune </div></div>";
 		}
@@ -456,7 +455,7 @@ function decorerTile(nom,visuel){
 				}
 			}
 		}
-		display.innerHTML = afficher();
+		ecrireDOM(tableauScore());
 	}
 /****************/
 			/* clavier */
@@ -464,9 +463,9 @@ function decorerTile(nom,visuel){
 		Contrôler la direction du joueur à l'aide des 4 touches du clavier: ArrowRight, ArrowLeft, ArrowUp, ArrowDown
 	*/
 	document.addEventListener('keydown', (event) => {
-		//alert("ii");
+		
 		const nomTouche = event.key;
-		if(!event.repeat){
+		
 				switch(nomTouche){
 				case 'ArrowRight':
 					if(j1===deuxJoueur[0].nom){
@@ -508,11 +507,18 @@ function decorerTile(nom,visuel){
 				break;
 
 				case 'Enter':
+					/*
+						tester si la direction de tire est la bonne afin d'appliquer le dégat en se basant sur 
+						l'arme.
+					*/
 					TirerArme();
-					
+					/* 
+						Tester les points de vie de chaque joueur
+					*/
+					gameOver();
 				break;
 			}
-		}
+		
 
 	}, false);
 		//La liste pour mettre x, y de l'endroit cliqué sur le canevas.
@@ -540,19 +546,25 @@ function decorerTile(nom,visuel){
 			array_carte = tracerCheminPossible(array_carte,deuxJoueur[0]);
 			/*
 				Après l'insertion de ces objets (Tile,decorerTile,joueur..) dans la matrice,
-				je l'envoie à la fonction update_carte() pour tracer entièrement à nouveau la carte.
+				je les envoie à la fonction update_carte() pour tracer entièrement à nouveau la carte.
 				Tracer de nouveau la carte, liste, x,y : taille de chaque carreau
 			*/
 			update_carte(array_carte,10,10);
 		}
 
-		function winner(){
-			for (var joueur in deuxJoueur){
-				if(joueur.pointVie >= 0){
-					alert("game is over");
+		function gameOver(){
+			var texteDOM="";
+			for (var j in deuxJoueur){
+				if(deuxJoueur[j].pointVie <= 0){
+                    texteDOM = "<div> <h3>Game Over</h3> gagnant <nom choisi> : "+ deuxJoueur[0].nom +" <img src='"+deuxJoueur[0].visuel+"' width='40' height='40'/></div>";
+					ecrireDOM(texteDOM);
 				}
 			}
 		}
+
+        function ecrireDOM(texte){
+            display.innerHTML = texte;
+        }
 </script>
 </body>
 </html>
